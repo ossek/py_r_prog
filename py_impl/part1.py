@@ -1,33 +1,23 @@
 from sys import argv
+import csv
 
 def pollutantmean(directory,pollutant,ids = range(1,332)):
     vals = []
     for id in ids:
-        vals.extend(pollutantValuesFromFile(directory,pollutant,id))
+        vals.extend(getPollutantValues(directory,id,pollutant))
     return sum(vals)/len(vals)
 
-def pollutantValuesFromFile(directory,pollutant,fileid):
-    content = getContent(directory,fileid)
-    return pollutantValues(content,pollutant)
-
-def pollutantValues(content,pollutant):
-    col = 1 if pollutant == "sulfate" else 2
-    lines = str.splitlines(content)
-    vals = []
-    for line in lines:
-        linevals = str.split(line,",")
-        val = linevals[col]
-        if str.upper(val).strip() != "NA":
-            vals.append(float(val))
-    return vals
-
-def getContent(directory,fileid):
+def getPollutantValues(directory,fileid,pollutant):
     filename = padFileid(fileid)
-    fileStream = open(directory + '/' + filename)
-    # should be "Date sulfate nitrate id"
-    header = fileStream.readline()
-    content = fileStream.read()
-    return content
+    vals = []
+    # headers should be "Date sulfate nitrate id"
+    with open(directory + '/' + filename,newline='') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            val = row[pollutant]
+            if str.upper(val).strip() != "NA":
+                vals.append(float(val))
+    return vals
 
 def padFileid(fileid):
     fileidstr = str(fileid)
